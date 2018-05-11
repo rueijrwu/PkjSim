@@ -684,7 +684,7 @@ class I3Plot(ImgPlot):
         self.lenCenterDot.set_radius(0.3)
         self.lenDot.set_radius(0.3)
         self.XMAX = self.XMAX / 3
-        self.ax.axis([self.XMAX / 3, 3 * self.XMAX, -self.XMAX, self.XMAX])
+        self.ax.axis([-self.XMAX / 3, 3 * self.XMAX, -self.XMAX, self.XMAX])
 
         # Add artist to plot
         self.ax.add_artist(self.lenCenterDot)
