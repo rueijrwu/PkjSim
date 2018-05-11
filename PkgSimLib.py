@@ -6,19 +6,6 @@ from matplotlib.patches import Circle, Arc, Polygon
 import numpy as np
 from mpl_toolkits.axes_grid.inset_locator import inset_axes
 
-CSS_STYLE = """
-<style>
-.pbody {
-    line-height: 250%;
-    text-align: justify;
-    font-size: 20px;
-}
-.item {
-    margin-left:24px;
-}
-</style>
-"""
-
 POS_CORNEA = 13.5
 RAD_CORNEA = 7.8
 CEN_CORNEA = POS_CORNEA - RAD_CORNEA
