@@ -8,22 +8,8 @@ from mpl_toolkits.axes_grid.inset_locator import inset_axes
 
 CSS_STYLE = """
 <style>
-.inblock {
-    display:inline;
-    font-size:28px;
-    padding:1px;
-}
-.inblock.red {
-    color:red
-}
-.inblock.blue {
-    color:blue
-}
-.inblock.green {
-    color:green
-}
 .pbody {
-    line-height: 2.5em;
+    line-height: 250%;
     text-align: justify;
     font-size: 20px;
 }
@@ -32,21 +18,97 @@ CSS_STYLE = """
 }
 </style>
 <script>
-code_show=true;
-function code_toggle() {
-if (code_show){
-    $('div.input').hide();
-} else {
-    $('div.input').show();
-}
-    code_show = !code_show
-}
-$( document ).ready(code_toggle);
+$( document ).ready(function(){
+  $('div.input').hide()
+});
 </script>
-<form action="javascript:code_toggle()">
-    <input type="submit" value="Show Code">
-</form>
 """
+
+POS_CORNEA = 13.5
+RAD_CORNEA = 7.8
+CEN_CORNEA = POS_CORNEA - RAD_CORNEA
+
+POS_LEN = POS_CORNEA - 7.6
+RAD_LEN = 6
+CEN_LEN = POS_LEN + RAD_LEN
+
+IDX_EYE = 1.377
+RAD_EYE = 13
+
+TEHTA_MAX = np.pi / 2
+
+
+class M_I1(object):
+
+    def __init__(self):
+        self.f = RAD_CORNEA * IDX_EYE / (IDX_EYE - 1)
+        self.lenRadius = RAD_CORNEA
+        self.lenCenter = np.array([CEN_CORNEA, 0])
+
+        self.qVerts = []
+        for theta in np.linspace(-TEHTA_MAX, TEHTA_MAX, num=100):
+            o, n, qPt = self.calculateImage(theta)
+            self.qVerts.append(qPt)
+        self.qVerts = np.array(self.qVerts)
+
+    def calculateImage(self, theta):
+
+        COS = np.cos(theta)
+        SIN = np.sin(theta)
+        n = np.array([COS, SIN])
+        o = self.lenRadius * n + self.lenCenter
+        qPt = -self.f * n + self.lenCenter
+        return o, n, qPt
+
+
+class M_I2(object):
+
+    def __init__(self, parent):
+        self.f = RAD_LEN / 2
+        self.lenRadius = RAD_LEN
+        self.lenCenter = np.array([CEN_LEN, 0])
+        self.parent = parent
+        self.qVerts = []
+        for theta in np.linspace(-TEHTA_MAX, TEHTA_MAX, num=100):
+            o, n, pPt, qPt = self.calculateImage(theta)
+            self.qVerts.append(qPt)
+        self.qVerts = np.array(self.qVerts)
+
+    def calculateImage(self, theta):
+
+        o, n, pPt = self.parent.calculateImage(theta)
+        n = pPt - self.lenCenter
+        n = n / np.linalg.norm(n)
+        o = self.lenRadius * n + self.lenCenter
+        p = np.linalg.norm(pPt - o)
+        q = self.f * p / (p - self.f)
+        qPt = -q * n + o
+        return o, n, pPt, qPt
+
+
+class M_I3(object):
+
+    def __init__(self, parent):
+        self.f = RAD_CORNEA / (IDX_EYE - 1)
+        self.lenRadius = RAD_CORNEA
+        self.lenCenter = np.array([CEN_CORNEA, 0])
+        self.parent = parent
+        self.qVerts = []
+        for theta in np.linspace(-TEHTA_MAX, TEHTA_MAX, num=100):
+            o, n, pPt, qPt = self.calculateImage(theta)
+            self.qVerts.append(qPt)
+        self.qVerts = np.array(self.qVerts)
+
+    def calculateImage(self, theta):
+
+        o, n, qPt, pPt = self.parent.calculateImage(theta)
+        n = pPt - self.lenCenter
+        n = n / np.linalg.norm(n)
+        o = self.lenRadius * n + self.lenCenter
+        p = np.linalg.norm(pPt - o)
+        q = -self.f * p / (self.f + p)
+        qPt = q * n + o
+        return o, n, pPt, qPt
 
 
 class NormalLens:
@@ -57,7 +119,7 @@ class NormalLens:
         self.f = f
         XMAX = np.abs(3 * f)
         YMAX = np.abs(f)
-        self.fig = plt.figure(figsize=(10, 6), facecolor='white')
+        self.fig = plt.figure(figsize=(8, 4), facecolor='white')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.ax.axis('off')
         self.ax.axis([-XMAX, XMAX, -YMAX, YMAX])
@@ -150,7 +212,7 @@ class RotatedLens:
         self.theta = 0
         self.XMAX = XMAX = np.abs(6 * f)
 
-        self.fig = plt.figure(figsize=(10, 8), facecolor='white')
+        self.fig = plt.figure(figsize=(8, 6), facecolor='white')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.ax.axis('off')
         self.ax.axis([-XMAX, XMAX, -XMAX, XMAX])
@@ -284,20 +346,7 @@ class RotatedLens:
         self.fig.canvas.draw_idle()
 
 
-POS_CORNEA = 13.5
-RAD_CORNEA = 7.8
-CEN_CORNEA = POS_CORNEA - RAD_CORNEA
-
-POS_LEN = POS_CORNEA - 7.6
-RAD_LEN = 6
-CEN_LEN = POS_LEN + RAD_LEN
-
-IDX_EYE = 1.377
-RAD_EYE = 13
-
-TEHTA_MAX = np.pi / 2
-
-
+# First Purkinje Image
 class FirstPkg:
 
     def __init__(self):
@@ -308,18 +357,31 @@ class FirstPkg:
         self.theta = 0
         self.XMAX = XMAX = 3 * self.lenRadius
 
-        self.fig = plt.figure(figsize=(10, 8), facecolor='white')
+        self.fig = plt.figure(figsize=(8, 4), facecolor='white')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.ax.axis('off')
         self.ax.axis([-XMAX, XMAX, -XMAX, XMAX])
 
-        self.eye = FlatCircle(
-            [0, 0],
-            RAD_EYE,
-            np.pi / 5, np.pi * 9 / 5,
-            closed=False,
-            fc='none')
+        #self.eye = FlatCircle(
+        #    [0, 0],
+        #    RAD_EYE,
+        #    np.pi / 5, np.pi * 9 / 5,
+        #    closed=False,
+        #    fc='none')
 
+        self.eye = Arc(
+            [0, 0],
+            2 * RAD_EYE, 2 * RAD_EYE,
+            theta1=36, theta2=324,
+            fc='none', lw=2)
+        
+        self.cornea = Arc(
+            [CEN_CORNEA, 0],
+            2 * RAD_CORNEA, 2 * RAD_CORNEA,
+            theta1=-60., theta2=60.0,
+            zorder=0, fc='white', ec='black', lw=2)
+        
+        
         # Lens
         self.len = Arc(self.lenCenter, 2 * R, 2 * R, theta1=-60.,
                        theta2=60.0, zorder=0, fc='white', ec='black', lw=2)
@@ -364,6 +426,7 @@ class FirstPkg:
 
         # Add artist to plot
         self.ax.add_artist(self.eye)
+        self.ax.add_artist(self.cornea)
         self.ax.add_artist(self.haxis)
         self.ax.add_artist(self.len)
         self.ax.add_artist(self.lenDot)
@@ -414,87 +477,13 @@ class FirstPkg:
         self.lightBeam.set_data([0, self.XMAX * COS], [0, self.XMAX * SIN])
         self.fig.canvas.draw_idle()
 
-
-class M_I1(object):
-
-    def __init__(self):
-        self.f = RAD_CORNEA * IDX_EYE / (IDX_EYE - 1)
-        self.lenRadius = RAD_CORNEA
-        self.lenCenter = np.array([CEN_CORNEA, 0])
-
-        self.qVerts = []
-        for theta in np.linspace(-TEHTA_MAX, TEHTA_MAX, num=100):
-            o, n, qPt = self.calculateImage(theta)
-            self.qVerts.append(qPt)
-        self.qVerts = np.array(self.qVerts)
-
-    def calculateImage(self, theta):
-
-        COS = np.cos(theta)
-        SIN = np.sin(theta)
-        n = np.array([COS, SIN])
-        o = self.lenRadius * n + self.lenCenter
-        qPt = -self.f * n + self.lenCenter
-        return o, n, qPt
-
-
-class M_I2(object):
-
-    def __init__(self, parent):
-        self.f = RAD_LEN / 2
-        self.lenRadius = RAD_LEN
-        self.lenCenter = np.array([CEN_LEN, 0])
-        self.parent = parent
-        self.qVerts = []
-        for theta in np.linspace(-TEHTA_MAX, TEHTA_MAX, num=100):
-            o, n, pPt, qPt = self.calculateImage(theta)
-            self.qVerts.append(qPt)
-        self.qVerts = np.array(self.qVerts)
-
-    def calculateImage(self, theta):
-
-        o, n, pPt = self.parent.calculateImage(theta)
-        n = pPt - self.lenCenter
-        n = n / np.linalg.norm(n)
-        o = self.lenRadius * n + self.lenCenter
-        p = np.linalg.norm(pPt - o)
-        q = self.f * p / (p - self.f)
-        qPt = -q * n + o
-        return o, n, pPt, qPt
-
-
-class M_I3(object):
-
-    def __init__(self, parent):
-        self.f = RAD_CORNEA / (IDX_EYE - 1)
-        self.lenRadius = RAD_CORNEA
-        self.lenCenter = np.array([CEN_CORNEA, 0])
-        self.parent = parent
-        self.qVerts = []
-        for theta in np.linspace(-TEHTA_MAX, TEHTA_MAX, num=100):
-            o, n, pPt, qPt = self.calculateImage(theta)
-            self.qVerts.append(qPt)
-        self.qVerts = np.array(self.qVerts)
-
-    def calculateImage(self, theta):
-
-        o, n, qPt, pPt = self.parent.calculateImage(theta)
-        n = pPt - self.lenCenter
-        n = n / np.linalg.norm(n)
-        o = self.lenRadius * n + self.lenCenter
-        p = np.linalg.norm(pPt - o)
-        q = -self.f * p / (self.f + p)
-        qPt = q * n + o
-        return o, n, pPt, qPt
-
-
 class ImgPlot(object):
 
     def __init__(self):
         self.rotCenter = np.array([0, 0])
         self.XMAX = 25
 
-        self.fig = plt.figure(figsize=(10, 8), facecolor='white')
+        self.fig = plt.figure(figsize=(8, 4), facecolor='white')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.ax.axis('off')
         self.ax.axis([-self.XMAX, self.XMAX, -self.XMAX, self.XMAX])
@@ -568,7 +557,7 @@ class ImgPlot(object):
         self.theta = np.deg2rad(change['new'])
         self.update()
 
-
+# Plot for the image of object by conrea
 class I1Plot(ImgPlot):
 
     def __init__(self):
@@ -783,9 +772,9 @@ class PkgPlot(ImgPlot):
         self.ax.add_artist(self.qProj)
 
         self.ax1 = inset_axes(self.ax,
-                              width=3.5,  # width = 30% of parent_bbox
-                              height=2.6,  # height : 1 inch
-                              bbox_to_anchor=(0.95, 0.95),
+                              width=3.,  # width = 30% of parent_bbox
+                              height=2.1,  # height : 1 inch
+                              bbox_to_anchor=(1, 0.95),
                               bbox_transform=self.ax.figure.transFigure)
         n1 = np.array([np.sin(theta), -np.cos(theta)]).T
         sep = self.model.qVerts - verts
@@ -804,8 +793,8 @@ class PkgPlot(ImgPlot):
         self.sepDot, = self.ax1.plot([0], [0], 'ob')
         self.ax1.set_ylabel("mm")
         self.ax1.set_xlabel("deg")
-        self.ax1.set_title("Speration of Purkinje image")
-        self.ax1.legend(["Sep", "Sin"], bbox_to_anchor=(0.45, 1))
+        self.ax1.set_title("Seperation of Purkinje image")
+        self.ax1.legend(["Seperation", "Sin"], bbox_to_anchor=(0.45, 1))
 
         self.update()
 
