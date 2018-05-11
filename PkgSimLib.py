@@ -356,9 +356,9 @@ class FirstPkg:
         self.lenCenter = np.array([CEN_CORNEA, 0])
         self.rotCenter = np.array([0, 0])
         self.theta = 0
-        self.XMAX = XMAX = 5 * self.lenRadius
+        self.XMAX = XMAX = 3 * self.lenRadius
 
-        self.fig = plt.figure(figsize=(8, 4), facecolor='white')
+        self.fig = plt.figure(figsize=(8, 8), facecolor='white')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.ax.axis('off')
         self.ax.axis([-XMAX, XMAX, -XMAX, XMAX])
@@ -482,9 +482,9 @@ class ImgPlot(object):
 
     def __init__(self):
         self.rotCenter = np.array([0, 0])
-        self.XMAX = 40
+        self.XMAX = 25
 
-        self.fig = plt.figure(figsize=(8, 4), facecolor='white')
+        self.fig = plt.figure(figsize=(8, 8), facecolor='white')
         self.ax = self.fig.add_subplot(111, aspect='equal')
         self.ax.axis('off')
         self.ax.axis([-self.XMAX, self.XMAX, -self.XMAX, self.XMAX])
