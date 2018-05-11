@@ -795,7 +795,7 @@ class PkgPlot(ImgPlot):
         self.ax1.set_ylabel("mm")
         self.ax1.set_xlabel("deg")
         self.ax1.set_title("Seperation of Purkinje image")
-        self.ax1.legend(["Seperation", "Sin"], bbox_to_anchor=(0.45, 1))
+        self.ax1.legend(["Seperation", "sin"], bbox_to_anchor=(0.45, 1))
 
         self.update()
 
