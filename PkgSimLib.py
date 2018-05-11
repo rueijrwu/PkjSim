@@ -268,7 +268,7 @@ class RotatedLens:
         # P radius
         self.pRadiusLine = Line2D([0, 0],
                                   [0, 0],
-                                  zorder=1, lw=2, color='purple', ls='--')
+                                  zorder=1, lw=2, color='purple')
 
         # Add artist to plot
         self.ax.add_artist(self.haxis)
