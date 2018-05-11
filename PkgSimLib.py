@@ -17,11 +17,6 @@ CSS_STYLE = """
     margin-left:24px;
 }
 </style>
-<script>
-$( document ).ready(function(){
-  $('div.input').hide()
-});
-</script>
 """
 
 POS_CORNEA = 13.5
