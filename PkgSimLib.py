@@ -414,7 +414,7 @@ class FirstPkg:
         # Optical axis
         self.lightBeam = Line2D([-XMAX, XMAX],
                                 [0, 0],
-                                zorder=2, lw=2, color='red')
+                                zorder=2, lw=2, color='purple')
 
         # DOt & Text for q
         self.qDot = Circle([0, 0], zorder=3, radius=0.5, fc='b', ec='none')
